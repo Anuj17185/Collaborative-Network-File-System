@@ -43,6 +43,11 @@ exports.renew=(filename:string,client:string,ws:WebSocket,onexpire:(filename:str
     },1000);
     return true;
 };
+exports.getfileaccessholder=(filename:string,client:string)=>{
+    const filedet=activelock.get(filename);
+    const fileholder=filedet?.holder;
+    return fileholder;
+}
 exports.disconnect=(ws:WebSocket)=>{
     activelock.forEach((file:filedetails,filename:string)=>{
         if(file.socket==ws){
