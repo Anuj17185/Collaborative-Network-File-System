@@ -2,7 +2,7 @@ import { WebSocket } from "ws";
 import fs from "fs/promises";
 import path from "path";
 const dirpath=path.join(__dirname,"server","storage","files");
-exports.readfile=async(filename:string):Promise<string>=>{
+export const readfile=async(filename:string):Promise<string>=>{
     try{
         const file=path.basename(filename);
         const filepath=path.join(dirpath,file);
@@ -14,7 +14,7 @@ exports.readfile=async(filename:string):Promise<string>=>{
         return "";
     };
 };
-exports.savefile=async(filename:string,content:string):Promise<boolean>=>{
+export const savefile=async(filename:string,content:string):Promise<boolean>=>{
     try{
         const file=path.basename(filename);
         const filepath=path.join(dirpath,file);
@@ -26,7 +26,7 @@ exports.savefile=async(filename:string,content:string):Promise<boolean>=>{
         return false;
     }
 };
-exports.createfile=async (filename:string,content:string):Promise<boolean>=>{
+export const createfile=async (filename:string,content:string):Promise<boolean>=>{
     try{
         const file=path.basename(filename);
         const filepath=path.join(dirpath,file);
@@ -40,7 +40,7 @@ exports.createfile=async (filename:string,content:string):Promise<boolean>=>{
         return false;
     }
 };
-exports.allfiles=async ():Promise<string[]>=>{
+export const allfiles=async ():Promise<string[]>=>{
     try{
         const files=await fs.readdir(dirpath,{withFileTypes:true});
         const allfile=[];

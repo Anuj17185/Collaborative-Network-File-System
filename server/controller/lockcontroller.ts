@@ -11,7 +11,7 @@ interface filedetails{
 }
 const activelock=new Map<string,filedetails>();
 
-exports.aquirelock=(filename:string,client:string,ws:WebSocket,
+export const aquirelock=(filename:string,client:string,ws:WebSocket,
     onexpire:(filename:string,client:string)=>void):Lockaquire=>{
         if(!activelock.has(filename)){
             return {success:false};
@@ -24,14 +24,14 @@ exports.aquirelock=(filename:string,client:string,ws:WebSocket,
         activelock.set(filename,{holder:client,socket:ws,timer:timer});
         return {success:true,holder:client,ttl:1000};
 }
-exports.releaselock=(filename:string,client:string,ws:WebSocket):boolean=>{
+export const releaselock=(filename:string,client:string,ws:WebSocket):boolean=>{
     const file=activelock.get(filename);
     if(!file|| file.holder!=client) return false;
     clearTimeout(file.timer);
     activelock.delete(filename);
     return true;
 };
-exports.renew=(filename:string,client:string,ws:WebSocket,onexpire:(filename:string,client:string)=>void):boolean=>{
+export const renew=(filename:string,client:string,ws:WebSocket,onexpire:(filename:string,client:string)=>void):boolean=>{
     const file=activelock.get(filename);
     if(!file || file.holder!=client){
         return false;
@@ -43,12 +43,12 @@ exports.renew=(filename:string,client:string,ws:WebSocket,onexpire:(filename:str
     },1000);
     return true;
 };
-exports.getfileaccessholder=(filename:string,client:string)=>{
+export const getfileaccessholder=(filename:string,client:string)=>{
     const filedet=activelock.get(filename);
     const fileholder=filedet?.holder;
     return fileholder;
 }
-exports.disconnect=(ws:WebSocket)=>{
+export const disconnect=(ws:WebSocket)=>{
     activelock.forEach((file:filedetails,filename:string)=>{
         if(file.socket==ws){
             clearTimeout(file.timer);

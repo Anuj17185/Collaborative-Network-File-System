@@ -1,16 +1,10 @@
 import express,{type Express,type Request,type Response,type NextFunction} from "express";
-import { WebSocketServer } from 'ws';
+import { WebSocketServer,WebSocket,RawData } from 'ws';
 import * as filecontroller from './controller/filecontroller';
 import * as lockcontroller from './controller/lockcontroller';
 import cors from 'cors';
-
-interface msg{
-    type: 'INIT_STATE' | 'ACQUIRE_LOCK' | 'LOCK_GRANTED' | 'LOCK_DENIED' | 'HEARTBEAT' | 'HEARTBEAT_ACK' | 'RELEASE_LOCK' | 'LOCK_RELEASED' | 'SAVE_CONTENT' | 'FILE_UPDATED' | 'ERROR',
-    client?:string,
-    filename?:string,
-    ttl?:string,
-    content?:string
-}
+import crypto from 'crypto';
+import {IncomingMessage,OutgoingMessage} from './types/message'
 
 const app:Express=express();
 
@@ -26,10 +20,13 @@ const server=app.listen(3000);
 const wss=new WebSocketServer({server});
 
 
-wss.on('connection',(ws)=>{
-    console.log("connected");
+wss.on('connection',async(ws:WebSocket)=>{
+    const clientid=crypto.randomUUID();
 
-    ws.on('message',(rawmsg)=>{
+    const avalfiles=await filecontroller.allfiles();
+    ws.send(JSON.stringify({type:'INIT_STATE',filse:avalfiles,clientid:clientid}));
+
+    ws.on('message',(rawmsg:RawData)=>{
         const msgstring=rawmsg.toString();
         console.log(msgstring);
 
