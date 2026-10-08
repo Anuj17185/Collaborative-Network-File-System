@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import fs from "fs/promises";
 import path from "path";
-const dirpath=path.join(__dirname,"server","storage","files");
+const dirpath = path.resolve(process.cwd(), "storage", "files");
 export const readfile=async(filename:string):Promise<string>=>{
     try{
         const file=path.basename(filename);
@@ -34,7 +34,7 @@ export const createfile=async (filename:string,content:string):Promise<boolean>=
         return true;
     }
     catch(err:any){
-        if(err==="EEXIST"){
+        if(err.code==="EEXIST"){
             console.log("file already exists");
         }
         return false;
@@ -44,9 +44,9 @@ export const allfiles=async ():Promise<string[]>=>{
     try{
         const files=await fs.readdir(dirpath,{withFileTypes:true});
         const allfile=[];
-        for(const file in files){
-            const f=path.basename(file);
-            allfile.push(file);
+        for(const file of files){
+            if(file.isFile())
+            allfile.push(file.name);
         }
         return allfile;
     }

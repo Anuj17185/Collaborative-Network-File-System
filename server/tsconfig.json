@@ -22,6 +22,6 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
   },
-  "inclue":["**/*"],
+  "include":["**/*"],
   "exclude":["node_modules","dist"]
 }

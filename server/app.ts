@@ -17,25 +17,144 @@ app.get('/health', (req, res) => {
 });
 
 const server=app.listen(3000);
-const wss=new WebSocketServer({server});
+const wss = new WebSocketServer({ server });
 
-
+const brodcast=(data:OutgoingMessage)=>{
+    const payload=JSON.stringify(data);
+    wss.clients.forEach((client)=>{
+        if(client.readyState==WebSocket.OPEN){
+            client.send(payload);
+        }
+    })
+};
 wss.on('connection',async(ws:WebSocket)=>{
     const clientid=crypto.randomUUID();
 
     const avalfiles=await filecontroller.allfiles();
-    ws.send(JSON.stringify({type:'INIT_STATE',filse:avalfiles,clientid:clientid}));
+    ws.send(JSON.stringify({type:'INIT_STATE',files:avalfiles,clientid:clientid} satisfies OutgoingMessage));
 
-    ws.on('message',(rawmsg:RawData)=>{
-        const msgstring=rawmsg.toString();
-        console.log(msgstring);
+    ws.on('message',async (rawmsg:RawData)=>{
 
         try{
-            const data= JSON.parse(msgstring);
-            console.log(data);
+            const msgstring=rawmsg.toString();
+            const data:IncomingMessage= JSON.parse(msgstring);
+            switch(data.type){
+                case 'READ_FILE':{
+                    const filename=data.filename;
+                    const content= await filecontroller.readfile(filename);
+                    const holder=lockcontroller.getfileaccessholder(filename,data.clientid);
+                    ws.send(JSON.stringify({type:'FILE_CONTENT',content:content,filename:filename,
+                        holder:holder
+                    } satisfies OutgoingMessage));
+                    break;
+                }
+                case 'ACQUIRE_LOCK':{
+                    const filename=data.filename;
+                    const clientid=data.clientid;
+                    const outcome=lockcontroller.aquirelock(filename,clientid,ws,(expiredfile,holder)=>{
+                        brodcast({type:'LOCK_RELEASED',
+                            filename:expiredfile,
+                            clientid:holder,
+                            reason:"timeout"
+                        });
+                    });
+                    if(outcome.success){
+                        const content=await filecontroller.readfile(filename);
+                        ws.send(JSON.stringify({
+                            type:'LOCK_GRANTED',
+                            content:content,
+                            filename:filename,
+                            clientid:clientid
+                        } satisfies OutgoingMessage))
+
+                        brodcast({type:'LOCK_STATUS_CHANGED',
+                            filename:filename,
+                            holder:clientid
+                        });
+                    }
+                    else{
+                        const holder= lockcontroller.getfileaccessholder(filename,clientid);
+                        ws.send(JSON.stringify({
+                            type:'LOCK_DENIED',
+                            filename:filename,
+                            holder:holder
+                        } satisfies OutgoingMessage));
+                    }
+                    break;
+                }
+                case 'RELEASE_LOCK':{
+                    const filename=data.filename;
+                    const outcome:boolean=lockcontroller.releaselock(filename,data.clientid);
+                    if(outcome){
+                        brodcast({
+                            type:'LOCK_RELEASED',
+                            filename:filename,
+                            clientid:data.clientid,
+                            reason:"released"
+                        });
+                    }
+                    else{
+                        ws.send(JSON.stringify({
+                            type:"ERROR",
+                            msg:"Either the file doesn't exist or the file isn't locked"
+                        } satisfies OutgoingMessage));
+                    }
+                    break;
+                }
+                case "SAVE_CONTENT":{
+                    if(data.clientid != lockcontroller.getfileaccessholder(data.filename,data.clientid)){
+                        ws.send(JSON.stringify({
+                            type:"ERROR",
+                            msg:"You don't have write permission"
+                        } satisfies OutgoingMessage));
+                        return;
+                    }
+                    const content=data.content||'';
+                    const outcome:boolean=await filecontroller.savefile(data.filename,content);
+                    if(outcome){
+                            brodcast({type:'FILE_UPDATED',
+                            filename:data.filename,
+                            content:content,
+                            clientid:data.clientid
+                        });
+                    }
+                    break;
+                }
+                case "HEARTBEAT":{
+                    const outcome=lockcontroller.renew(data.filename,data.clientid,(filename,clientid)=>{
+                        brodcast({
+                            type:'HEARTBEAT_ACK',
+                            filename:filename,
+                            clientid:clientid
+                        });
+                        if(outcome){
+                            ws.send(JSON.stringify({
+                            type: 'HEARTBEAT_ACK',
+                            filename: data.filename,
+                            clientid:data.clientid
+                            } satisfies OutgoingMessage));
+
+                        }
+                    });
+                    break;
+                }
+            }   
         }
         catch(err){
-            console.error(err);
+           ws.send(JSON.stringify({
+             type: 'ERROR',
+             msg: 'Malformed JSON payload.' 
+            } satisfies OutgoingMessage
+        ));
         }
     })
+    ws.on('close',()=>{
+        lockcontroller.disconnect(ws,(filename,clientid)=>brodcast({
+                type:'LOCK_RELEASED',
+                filename:filename,
+                clientid:clientid,
+                reason:"disconnected"
+            }));
+        })
+    
 });

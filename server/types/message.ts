@@ -8,6 +8,7 @@ export type IncomingType=| 'READ_FILE'
 export interface ReadfilePayload{
     type:'READ_FILE',
     content:string,
+    filename:string,
     clientid:string
 }
 export interface AcquirelockPayload{
@@ -28,7 +29,8 @@ export interface ReleasePayload{
 export interface SaveContentPayload{
     type:'SAVE_CONTENT',
     filename:string,
-    clientid:string
+    clientid:string,
+    content:string
 }
 
 export type IncomingMessage=ReadfilePayload|
@@ -49,7 +51,7 @@ export type OutgoingType=| 'INIT_STATE'
 
 export interface Init{
     type:'INIT_STATE',
-    files:[],
+    files:string[],
     clientid:string
 }
 export interface FileContent{
