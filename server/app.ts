@@ -42,7 +42,7 @@ wss.on('connection',async(ws:WebSocket)=>{
                 case 'READ_FILE':{
                     const filename=data.filename;
                     const content= await filecontroller.readfile(filename);
-                    const holder=lockcontroller.getfileaccessholder(filename,data.clientid);
+                    const holder=lockcontroller.getfileaccessholder(filename,clientid);
                     ws.send(JSON.stringify({type:'FILE_CONTENT',content:content,filename:filename,
                         holder:holder
                     } satisfies OutgoingMessage));
@@ -50,7 +50,6 @@ wss.on('connection',async(ws:WebSocket)=>{
                 }
                 case 'ACQUIRE_LOCK':{
                     const filename=data.filename;
-                    const clientid=data.clientid;
                     const outcome=lockcontroller.aquirelock(filename,clientid,ws,(expiredfile,holder)=>{
                         brodcast({type:'LOCK_RELEASED',
                             filename:expiredfile,
@@ -84,12 +83,12 @@ wss.on('connection',async(ws:WebSocket)=>{
                 }
                 case 'RELEASE_LOCK':{
                     const filename=data.filename;
-                    const outcome:boolean=lockcontroller.releaselock(filename,data.clientid);
+                    const outcome:boolean=lockcontroller.releaselock(filename,clientid);
                     if(outcome){
                         brodcast({
                             type:'LOCK_RELEASED',
                             filename:filename,
-                            clientid:data.clientid,
+                            clientid:clientid,
                             reason:"released"
                         });
                     }
@@ -102,7 +101,7 @@ wss.on('connection',async(ws:WebSocket)=>{
                     break;
                 }
                 case "SAVE_CONTENT":{
-                    if(data.clientid != lockcontroller.getfileaccessholder(data.filename,data.clientid)){
+                    if(clientid != lockcontroller.getfileaccessholder(data.filename,clientid)){
                         ws.send(JSON.stringify({
                             type:"ERROR",
                             msg:"You don't have write permission"
@@ -115,23 +114,24 @@ wss.on('connection',async(ws:WebSocket)=>{
                             brodcast({type:'FILE_UPDATED',
                             filename:data.filename,
                             content:content,
-                            clientid:data.clientid
+                            clientid:clientid
                         });
                     }
                     break;
                 }
                 case "HEARTBEAT":{
-                    const outcome=lockcontroller.renew(data.filename,data.clientid,(filename,clientid)=>{
+                    const outcome=lockcontroller.renew(data.filename,clientid,(filename,expiredClientId)=>{
                         brodcast({
-                            type:'HEARTBEAT_ACK',
-                            filename:filename,
-                            clientid:clientid
+                            type: "LOCK_RELEASED",
+                            filename,
+                            clientid: expiredClientId,
+                            reason: "timeout"
                         });
                         if(outcome){
                             ws.send(JSON.stringify({
                             type: 'HEARTBEAT_ACK',
                             filename: data.filename,
-                            clientid:data.clientid
+                            clientid:clientid
                             } satisfies OutgoingMessage));
 
                         }
@@ -151,7 +151,7 @@ wss.on('connection',async(ws:WebSocket)=>{
                     else {
                         ws.send(JSON.stringify({
                         type: 'ERROR',
-                        message: `Failed to create file '${data.filename}'. File might already exist.`,
+                        msg: `Failed to create file '${data.filename}'. File might already exist.`,
                         }));
                     }
                     break;

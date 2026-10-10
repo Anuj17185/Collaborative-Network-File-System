@@ -8,7 +8,6 @@ export type IncomingType=| 'READ_FILE'
 
 export interface ReadfilePayload{
     type:'READ_FILE',
-    content:string,
     filename:string,
     clientid:string
 }

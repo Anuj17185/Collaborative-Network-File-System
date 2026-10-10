@@ -30,7 +30,7 @@ export const aquirelock=(filename:string,client:string,ws:WebSocket,
         },LOCK_TTL);
 
         activelock.set(filename,{holder:client,socket:ws,timer:timer});
-        return {success:true,holder:client,ttl:1000};
+        return {success:true,holder:client,ttl:LOCK_TTL};
 }
 export const releaselock=(filename:string,client:string):boolean=>{
     const file=activelock.get(filename);
