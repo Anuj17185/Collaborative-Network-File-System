@@ -61,7 +61,7 @@ export type IncomingType =
 export interface Init {
   type: 'INIT_STATE';
   files: string[];
-  clientId: string;
+  clientid: string;
 }
 
 export interface FileContent {
@@ -81,7 +81,7 @@ export interface LockGranted {
   type: 'LOCK_GRANTED';
   content: string;
   filename: string;
-  clientId: string;
+  clientid: string;
 }
 
 export interface LockDenied {
@@ -93,7 +93,7 @@ export interface LockDenied {
 export interface LockRelease {
   type: 'LOCK_RELEASED';
   filename: string;
-  clientId: string;
+  clientid: string;
   reason: 'explicit' | 'timeout' | 'disconnect';
 }
 
@@ -107,18 +107,18 @@ export interface FileUpdated {
   type: 'FILE_UPDATED';
   filename: string;
   content: string;
-  clientId: string;
+  clientid: string;
 }
 
 export interface ErrorMsg {
   type: 'ERROR';
-  message: string;
+  msg: string;
 }
 
 export interface HeartbeatAck {
   type: 'HEARTBEAT_ACK';
   filename: string;
-  clientId: string;
+  clientid: string;
 }
 
 export type IncomingMessage =

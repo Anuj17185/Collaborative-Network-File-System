@@ -1,0 +1,130 @@
+import { useState,useRef,useCallback, useEffect } from "react";
+import type {IncomingMessage, OutgoingMessage } from "../types/message";
+
+export const useWebsocket=(url:string)=>{
+    const [clientid,setclientid]=useState('');
+    const [files,setfiles]=useState<string[]>([]);
+    const [content,setcontent]=useState('');
+    const [isconnected,setisconnected]=useState<boolean>(false);
+    const [holder,setholder]=useState<string | null>(null);
+    const [status,setstatus]=useState<string|null>('');
+
+    
+
+    const ws=useRef<WebSocket | null>(null);
+    const heartbeatinterval=useRef<ReturnType<typeof setInterval> |null>(null);
+    
+    const sendmessage=useCallback((msg:OutgoingMessage)=>{
+        if(ws.current && ws.current.readyState==WebSocket.OPEN){
+            ws.current.send(JSON.stringify(msg));
+        }
+    },[])
+
+    const stopheartbeat=useCallback(()=>{
+        if(heartbeatinterval.current){
+            clearInterval(heartbeatinterval.current);
+            heartbeatinterval.current=null;
+        }
+    },[]);
+
+    const startheartbeat=useCallback((filename:string)=>{
+        stopheartbeat();
+        heartbeatinterval.current=setInterval(()=>{
+            sendmessage({
+                type:"HEARTBEAT",
+                filename:filename,
+            } satisfies OutgoingMessage)
+        },5000);
+    },[sendmessage,stopheartbeat]);
+    useEffect(()=>{
+        const socket=new WebSocket(url);
+        ws.current=socket;
+
+        socket.onopen=()=>{
+            setisconnected(true);
+        }
+        socket.onclose=()=>{
+            setisconnected(false);
+            stopheartbeat();
+        }
+        socket.onerror = () => {
+            setstatus("WebSocket connection error");
+        };
+        socket.onmessage=(event)=>{
+            try{
+                const data:IncomingMessage=JSON.parse(event.data);
+                switch(data.type){
+                    case "INIT_STATE":{
+                        const clientid=data.clientid;
+                        setclientid(clientid);
+                        const allfiles=data.files;
+                        setfiles(allfiles);
+                        break;
+                    }
+                    case "FILE_CONTENT":{
+                        const content=data.content;
+                        const holder=data.holder;
+                        setcontent(content);
+                        setholder(holder);
+                        break;
+                    }
+                    case "FILE_CREATED":{
+                        const allfiles=data.files;
+                        setfiles(allfiles);
+                        break;
+                    }
+                    case "LOCK_GRANTED":{
+                        const content=data.content;
+                        setholder(data.clientid);
+                        setcontent(content);
+                        startheartbeat(data.filename);
+                        break;
+                    }
+                    case "LOCK_DENIED":{
+                        setstatus("Lock denied");
+                        break;
+                    }
+                    case "LOCK_RELEASED":{
+                        setholder('');
+                        stopheartbeat();
+                        setstatus('Lock released');
+                        break;
+                    }
+                    case "LOCK_STATUS_CHANGED":{
+                        setholder(data.holder);
+                        break;
+                    }
+
+                    case "FILE_UPDATED":{
+                        if(data.clientid!=clientid)
+                        setcontent(data.content);
+                        break;
+                    }
+                    case "HEARTBEAT_ACK":{
+                        break;
+                    }
+                    case "ERROR":{
+                        setstatus(data.msg);
+                        break;
+                    }
+                }
+            }
+            catch(err){
+                console.log(err);
+            }
+        };
+        return ()=>{
+            stopheartbeat();
+            socket.close();
+        };
+    },[url,clientid,startheartbeat,stopheartbeat]);
+    return{
+        clientid,
+        files,
+        content,
+        holder,
+        status,
+        isconnected,
+        sendmessage
+    }
+}
