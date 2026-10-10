@@ -3,7 +3,8 @@ export type IncomingType=| 'READ_FILE'
   | 'ACQUIRE_LOCK'
   | 'HEARTBEAT'
   | 'RELEASE_LOCK'
-  | 'SAVE_CONTENT';
+  | 'SAVE_CONTENT'
+  | 'CREATE_FILE';
 
 export interface ReadfilePayload{
     type:'READ_FILE',
@@ -32,15 +33,22 @@ export interface SaveContentPayload{
     clientid:string,
     content:string
 }
+export interface Createfilepayload{
+    type:'CREATE_FILE',
+    filename:string,
+    content?:string
+}
 
 export type IncomingMessage=ReadfilePayload|
 SaveContentPayload|
 ReleasePayload|
 HearbeatPayload|
-AcquirelockPayload;
+AcquirelockPayload|
+Createfilepayload;
 
 export type OutgoingType=| 'INIT_STATE'
   | 'FILE_CONTENT'
+  | 'FILE_CREATED'
   | 'LOCK_GRANTED'
   | 'LOCK_DENIED'
   | 'LOCK_RELEASED'
@@ -59,6 +67,11 @@ export interface FileContent{
     content:string,
     filename:string,
     holder:string|null
+}
+export interface FileCreated{
+    type:'FILE_CREATED',
+    filename:string,
+    files:string[]
 }
 export interface LockGranted{
     type:'LOCK_GRANTED',
@@ -101,6 +114,7 @@ export interface HeartbeatAck{
 export type OutgoingMessage =
   | Init
   | FileContent
+  | FileCreated
   | LockGranted
   | LockDenied
   | LockRelease

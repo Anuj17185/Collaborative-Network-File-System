@@ -138,6 +138,24 @@ wss.on('connection',async(ws:WebSocket)=>{
                     });
                     break;
                 }
+                case 'CREATE_FILE': {
+                    const created = await filecontroller.createfile(data.filename, data.content || '');
+                    if (created) {
+                        const updatedFiles = await filecontroller.allfiles();
+                        brodcast({
+                        type: 'FILE_CREATED',
+                        filename: data.filename,
+                        files: updatedFiles,
+                        });
+                    } 
+                    else {
+                        ws.send(JSON.stringify({
+                        type: 'ERROR',
+                        message: `Failed to create file '${data.filename}'. File might already exist.`,
+                        }));
+                    }
+                    break;
+                    }
             }   
         }
         catch(err){
