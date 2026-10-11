@@ -16,7 +16,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const server=app.listen(3000);
+const server=app.listen(8080);
 const wss = new WebSocketServer({ server });
 
 const brodcast=(data:OutgoingMessage)=>{
@@ -127,15 +127,15 @@ wss.on('connection',async(ws:WebSocket)=>{
                             clientid: expiredClientId,
                             reason: "timeout"
                         });
-                        if(outcome){
-                            ws.send(JSON.stringify({
-                            type: 'HEARTBEAT_ACK',
-                            filename: data.filename,
-                            clientid:clientid
-                            } satisfies OutgoingMessage));
-
-                        }
                     });
+                    if(outcome){
+                        ws.send(JSON.stringify({
+                        type: 'HEARTBEAT_ACK',
+                        filename: data.filename,
+                        clientid:clientid
+                        } satisfies OutgoingMessage));
+
+                    }
                     break;
                 }
                 case 'CREATE_FILE': {

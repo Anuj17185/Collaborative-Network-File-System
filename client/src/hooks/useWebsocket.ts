@@ -9,8 +9,9 @@ export const useWebsocket=(url:string)=>{
     const [holder,setholder]=useState<string | null>(null);
     const [status,setstatus]=useState<string|null>('');
 
-    
 
+    const clientref=useRef('');
+    clientref.current=clientid;
     const ws=useRef<WebSocket | null>(null);
     const heartbeatinterval=useRef<ReturnType<typeof setInterval> |null>(null);
     
@@ -59,6 +60,7 @@ export const useWebsocket=(url:string)=>{
                         setclientid(clientid);
                         const allfiles=data.files;
                         setfiles(allfiles);
+                        clientref.current=data.clientid;
                         break;
                     }
                     case "FILE_CONTENT":{
@@ -85,7 +87,7 @@ export const useWebsocket=(url:string)=>{
                         break;
                     }
                     case "LOCK_RELEASED":{
-                        setholder('');
+                        setholder(null);
                         stopheartbeat();
                         setstatus('Lock released');
                         break;
@@ -96,7 +98,7 @@ export const useWebsocket=(url:string)=>{
                     }
 
                     case "FILE_UPDATED":{
-                        if(data.clientid!=clientid)
+                        if(data.clientid!=clientref.current)
                         setcontent(data.content);
                         break;
                     }
@@ -117,14 +119,16 @@ export const useWebsocket=(url:string)=>{
             stopheartbeat();
             socket.close();
         };
-    },[url,clientid,startheartbeat,stopheartbeat]);
+    },[url,startheartbeat,stopheartbeat]);
     return{
         clientid,
         files,
         content,
         holder,
         status,
+        setcontent,
         isconnected,
-        sendmessage
+        sendmessage,
+        stopheartbeat
     }
 }

@@ -10,7 +10,7 @@ interface filedetails{
     timer:NodeJS.Timeout;
 }
 const activelock=new Map<string,filedetails>();
-const LOCK_TTL=1500;
+const LOCK_TTL=15000;
 export const aquirelock=(filename:string,client:string,ws:WebSocket,
     onexpire:(filename:string,client:string)=>void):Lockaquire=>{
         const currentlock=activelock.get(filename);
