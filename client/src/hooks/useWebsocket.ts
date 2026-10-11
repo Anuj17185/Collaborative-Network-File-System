@@ -1,7 +1,7 @@
 import { useState,useRef,useCallback, useEffect } from "react";
 import type {IncomingMessage, OutgoingMessage } from "../types/message";
 
-export const useWebsocket=(url:string)=>{
+export const useWebsocket=(url:string, activeFilename:string)=>{
     const [clientid,setclientid]=useState('');
     const [files,setfiles]=useState<string[]>([]);
     const [content,setcontent]=useState('');
@@ -9,9 +9,10 @@ export const useWebsocket=(url:string)=>{
     const [holder,setholder]=useState<string | null>(null);
     const [status,setstatus]=useState<string|null>('');
 
-
     const clientref=useRef('');
     clientref.current=clientid;
+    const activeFileRef=useRef('');
+    activeFileRef.current=activeFilename;
     const ws=useRef<WebSocket | null>(null);
     const heartbeatinterval=useRef<ReturnType<typeof setInterval> |null>(null);
     
@@ -91,22 +92,27 @@ export const useWebsocket=(url:string)=>{
                         break;
                     }
                     case "LOCK_RELEASED":{
+                        if (data.filename !== activeFileRef.current) break;
                         setholder(null);
                         stopheartbeat();
                         setstatus('Lock released');
                         break;
                     }
                     case "LOCK_STATUS_CHANGED":{
+                        if (data.filename !== activeFileRef.current) break;
                         setholder(data.holder);
                         break;
                     }
 
                     case "FILE_UPDATED":{
-                        if(data.clientid!=clientref.current)
+                        if (data.filename === activeFileRef.current &&
+                            data.clientid !== clientref.current) {
                         setcontent(data.content);
+                        }
                         break;
                     }
                     case "HEARTBEAT_ACK":{
+                        if (data.filename !== activeFileRef.current) break;
                         break;
                     }
                     case "ERROR":{

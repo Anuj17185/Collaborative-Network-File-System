@@ -11,9 +11,10 @@ import './App.css'
 export default function App() {
   const [view, setView] = useState<'dashboard' | 'editor' | 'upload'>('dashboard');
   const [selectedFile, setSelectedFile] = useState<string>('');
-  const {clientid,files,content,holder,status,setcontent,isconnected,
+    const websocketUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080';
+    const {clientid,files,content,holder,status,setcontent,isconnected,
         sendmessage,
-        stopheartbeat} = useWebsocket('ws://localhost:8080');
+      stopheartbeat} = useWebsocket(websocketUrl, selectedFile);
   const handleviewfile=(filename:string)=>{
     setSelectedFile(filename);
     sendmessage({type:'READ_FILE',filename:filename});
