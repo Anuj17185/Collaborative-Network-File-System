@@ -5,8 +5,8 @@ dist/
 .env
 .env.local
 
-storage/files/*
-!storage/files/.gitkeep
+server/storage/files/*
+!server/storage/files/.gitkeep
 
 *.log
 .DS_Store
