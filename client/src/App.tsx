@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useWebsocket } from './hooks/useWebsocket';
-import { Navbar } from './components/navbar';
+import { Navbar } from './components/Navbar';
 import { StatusLogger } from './components/StatusLogger';
 import { FileExplorer} from './pages/Fileexplorer';
 import { EditorPage } from './pages/Editor';

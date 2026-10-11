@@ -13,7 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isconnected, clientid }) => (
       </h1>
     </div>
     <div className="text-right">
-      <span
+      {/* <span
         className={`inline-block px-2.5 py-1 text-xs font-mono rounded-md ${
           isconnected
             ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
@@ -21,7 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isconnected, clientid }) => (
         }`}
       >
         {isconnected ? 'Connected' : 'Offline'}
-      </span>
+      </span> */}
       <p className="text-xs text-slate-400 mt-1 font-mono">
         Client ID: {clientid || '...'}
       </p>
