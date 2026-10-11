@@ -34,7 +34,6 @@ export const StatusLogger = ({ status }: StatusLoggerProps) => {
 				onClick={(event) => event.stopPropagation()}
 			>
 				<div className="flex items-start gap-3">
-					<AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" aria-hidden="true" />
 					<div className="flex-1">
 						<h2 id="status-dialog-title" className="text-sm font-semibold">
 							Something went wrong
@@ -43,7 +42,6 @@ export const StatusLogger = ({ status }: StatusLoggerProps) => {
 					</div>
 					<button
 						type="button"
-						aria-label="Close error dialog"
 						title="Close error dialog"
 						onClick={() => setIsOpen(false)}
 						className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"

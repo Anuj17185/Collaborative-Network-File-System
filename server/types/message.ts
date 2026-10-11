@@ -81,6 +81,7 @@ export interface LockGranted{
 export interface LockDenied{
     type:'LOCK_DENIED',
     filename:string,
+    content:string,
     holder:string|null
 
 }

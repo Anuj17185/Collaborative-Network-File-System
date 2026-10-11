@@ -73,9 +73,11 @@ wss.on('connection',async(ws:WebSocket)=>{
                     }
                     else{
                         const holder= lockcontroller.getfileaccessholder(filename,clientid);
+                        const content=await filecontroller.readfile(filename);
                         ws.send(JSON.stringify({
                             type:'LOCK_DENIED',
                             filename:filename,
+                            content:content,
                             holder:holder
                         } satisfies OutgoingMessage));
                     }

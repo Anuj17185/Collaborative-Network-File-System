@@ -88,6 +88,8 @@ export const useWebsocket=(url:string, activeFilename:string)=>{
                         break;
                     }
                     case "LOCK_DENIED":{
+                        setcontent(data.content);
+                        setholder(data.holder);
                         setstatus("Lock denied");
                         break;
                     }
