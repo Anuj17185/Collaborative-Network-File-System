@@ -9,10 +9,8 @@ export const Navbar: React.FC<NavbarProps> = ({ isconnected, clientid }) => (
   <header className="flex items-center justify-between border-b border-slate-800 pb-4">
     <div>
       <h1 className="text-xl font-bold text-white flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
         Collaborative File System
       </h1>
-      <p className="text-xs text-slate-400 mt-1">Pessimistic Locking Architecture</p>
     </div>
     <div className="text-right">
       <span

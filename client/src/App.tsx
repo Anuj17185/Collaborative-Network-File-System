@@ -5,10 +5,11 @@ import { Navbar } from './components/navbar';
 import { StatusLogger } from './components/StatusLogger';
 import { FileExplorer} from './pages/Fileexplorer';
 import { EditorPage } from './pages/Editor';
+import {FileUploader} from './pages/Fileuploadpage';
 import './App.css'
 
 export default function App() {
-  const [view, setView] = useState<'dashboard' | 'editor'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'editor' | 'upload'>('dashboard');
   const [selectedFile, setSelectedFile] = useState<string>('');
   const {clientid,files,content,holder,status,setcontent,isconnected,
         sendmessage,
@@ -46,15 +47,16 @@ export default function App() {
       stopheartbeat();
     }
   }
-
   return (
   <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-6">
       <div className="max-w-5xl w-full mx-auto flex-1 flex flex-col gap-6">
         <Navbar isconnected={isconnected} clientid={clientid} />
         <StatusLogger status={status} />
         {view === 'dashboard' ? (
-          <FileExplorer  files={files} onView={handleviewfile} onEdit={handleeditfile} onUpload={handlecreatefile} />
-          ) :(<EditorPage 
+          <FileExplorer  files={files} onView={handleviewfile} onEdit={handleeditfile} onUploadclick={()=>setView('upload')} />
+          ): view === 'upload' ? (
+            <FileUploader onUpload={handlecreatefile} onBacktoFiles={()=>setView('dashboard')} />
+          ) : (<EditorPage 
             filename={selectedFile}
             holder={holder}
             clientid={clientid}

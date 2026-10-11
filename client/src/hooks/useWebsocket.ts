@@ -42,13 +42,17 @@ export const useWebsocket=(url:string)=>{
         ws.current=socket;
 
         socket.onopen=()=>{
+            if (ws.current !== socket) return;
             setisconnected(true);
+            setstatus(null);
         }
         socket.onclose=()=>{
+            if (ws.current !== socket) return;
             setisconnected(false);
             stopheartbeat();
         }
         socket.onerror = () => {
+            if (ws.current !== socket) return;
             setstatus("WebSocket connection error");
         };
         socket.onmessage=(event)=>{
@@ -117,6 +121,9 @@ export const useWebsocket=(url:string)=>{
         };
         return ()=>{
             stopheartbeat();
+            if (ws.current === socket) {
+                ws.current = null;
+            }
             socket.close();
         };
     },[url,startheartbeat,stopheartbeat]);

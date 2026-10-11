@@ -18,13 +18,13 @@ export const FileCard: React.FC<FileCardProps> = ({ filename, onView, onEdit }) 
         onClick={() => onView(filename)}
         className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-md font-medium transition-colors"
       >
-        <Eye className="w-3 h-3" /> View
+        <Eye className="w-3 h-3" />
       </button>
       <button
         onClick={() => onEdit(filename)}
-        className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-md font-medium transition-colors shadow-sm"
+        className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-md font-medium transition-colors"
       >
-        <SquarePen className="w-3 h-3" /> Edit
+        <SquarePen className="w-3 h-3" />
       </button>
     </div>
   </div>
